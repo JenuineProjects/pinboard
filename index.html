@@ -16,9 +16,26 @@
     <header class="header">
       <h1>Pinboard</h1>
       <div class="header-actions">
+        <button class="icon-btn" id="settingsToggle" title="Settings">&#9881;</button>
         <button class="icon-btn" id="searchToggle" title="Search">&#128269;</button>
       </div>
     </header>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel" style="display:none">
+      <div class="settings-content">
+        <h3>Data</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Export your memories to transfer them to another device, or import a backup.</p>
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <button class="submit-btn" id="exportBtn" style="flex:1;margin:0;padding:10px;font-size:14px">&#128229; Export</button>
+          <label class="submit-btn" id="importLabel" style="flex:1;margin:0;padding:10px;font-size:14px;text-align:center;cursor:pointer">
+            &#128228; Import
+            <input type="file" id="importFile" accept=".json" hidden>
+          </label>
+        </div>
+        <p style="font-size:11px;color:var(--text-dim)">Your data stays on your device. Export creates a .json file you can move to another device.</p>
+      </div>
+    </div>
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">

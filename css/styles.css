@@ -1389,6 +1389,25 @@ html, body {
   margin-bottom: 10px;
 }
 
+/* ===== Settings Panel ===== */
+.settings-panel {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--bg-hover);
+  padding: 16px 20px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-content h3 {
+  font-size: 16px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
 /* ===== Utility ===== */
 .hidden { display: none !important; }
 

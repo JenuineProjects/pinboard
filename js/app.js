@@ -22,6 +22,7 @@
     initModal();
     initDetailModal();
     initSearch();
+    initSettings();
     loadHighlights();
   });
 
@@ -1272,6 +1273,69 @@
     }
 
     attachHighlightListeners(container);
+  }
+
+  // ===================================================================
+  //  SETTINGS (Export / Import)
+  // ===================================================================
+  function initSettings() {
+    $('settingsToggle').addEventListener('click', () => {
+      const panel = $('settingsPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    $('exportBtn').addEventListener('click', exportData);
+    $('importFile').addEventListener('change', importData);
+  }
+
+  async function exportData() {
+    const entries = await PinboardDB.getAll();
+    const data = {
+      app: 'Pinboard',
+      version: 1,
+      exportDate: new Date().toISOString(),
+      entries
+    };
+    const json = JSON.stringify(data);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pinboard-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      if (data.app !== 'Pinboard' || !data.entries) {
+        alert('This file doesn\'t look like a Pinboard backup.');
+        return;
+      }
+
+      const count = data.entries.length;
+      if (!confirm(`Import ${count} memor${count === 1 ? 'y' : 'ies'}? This will add to your existing data (duplicates will be overwritten).`)) {
+        return;
+      }
+
+      for (const entry of data.entries) {
+        await PinboardDB.save(entry);
+      }
+
+      alert(`Imported ${count} memor${count === 1 ? 'y' : 'ies'} successfully!`);
+      $('settingsPanel').style.display = 'none';
+      refreshCurrentView();
+    } catch (err) {
+      alert('Error importing file. Make sure it\'s a valid Pinboard backup.');
+    }
+
+    e.target.value = '';
   }
 
   // ===================================================================
