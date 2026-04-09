@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pinboard</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>Pinboard</h1>
+      <div class="header-actions">
+        <button class="icon-btn" id="searchToggle" title="Search">&#128269;</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+
+      <!-- Highlights View (default) -->
+      <div class="view active" id="highlightsView">
+        <div id="highlightsContent"></div>
+        <div class="empty-state" id="highlightsEmpty">
+          <div class="empty-icon">&#128204;</div>
+          <h3>No memories yet</h3>
+          <p>Tap the + button to pin your first memory!</p>
+        </div>
+      </div>
+
+      <!-- Map View -->
+      <div class="view" id="mapView">
+        <div class="map-wrapper" id="mapWrapper">
+          <canvas id="mapCanvas"></canvas>
+          <div class="map-zoom-controls">
+            <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+            <button class="zoom-btn" id="zoomOut" title="Zoom out">&minus;</button>
+            <button class="zoom-btn" id="zoomReset" title="Reset view">&#8634;</button>
+          </div>
+        </div>
+        <div class="calendar-entries" id="mapEntries" style="margin-top:16px"></div>
+      </div>
+
+      <!-- Search View -->
+      <div class="view" id="searchView">
+        <div class="search-bar">
+          <input class="search-input" id="searchInput" type="text" placeholder="Search your memories...">
+        </div>
+        <div class="filter-panel">
+          <div class="filter-section">
+            <label>Tags</label>
+            <div class="filter-row" id="filterTags"></div>
+          </div>
+          <div class="filter-section">
+            <label>Date Range</label>
+            <div class="date-range">
+              <input type="date" id="filterDateFrom">
+              <span>to</span>
+              <input type="date" id="filterDateTo">
+            </div>
+          </div>
+          <div class="filter-section">
+            <label>Person</label>
+            <input class="form-input" id="filterPerson" type="text" placeholder="Filter by person..." style="font-size:13px;padding:8px 10px">
+          </div>
+          <div class="filter-section">
+            <label>Location</label>
+            <input class="form-input" id="filterLocation" type="text" placeholder="Filter by location..." style="font-size:13px;padding:8px 10px">
+          </div>
+          <button class="clear-filters-btn" id="clearFilters">Clear All Filters</button>
+        </div>
+        <div class="search-results-info" id="searchResultsInfo"></div>
+        <div id="searchResults"></div>
+      </div>
+    </div>
+
+    <!-- FAB Menu -->
+    <div class="fab-menu" id="fabMenu">
+      <button class="fab-option" id="fabNewTrip" title="New Trip">
+        <span>&#9992; Trip</span>
+      </button>
+      <button class="fab-option" id="fabNewEntry" title="New Entry">
+        <span>&#128221; Entry</span>
+      </button>
+    </div>
+    <button class="fab" id="fabNew" title="New Memory">+</button>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="highlights">
+        <span class="nav-icon">&#128247;</span>
+        <span>Highlights</span>
+      </button>
+      <button class="nav-item" data-view="map">
+        <span class="nav-icon">&#128205;</span>
+        <span>Map</span>
+      </button>
+      <button class="nav-item" data-view="search">
+        <span class="nav-icon">&#128269;</span>
+        <span>Search</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- New Entry Modal -->
+  <div class="modal-overlay" id="entryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">New Memory</h2>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+
+      <!-- Trip fields (hidden by default) -->
+      <div class="form-group trip-fields" id="tripFields" style="display:none">
+        <label class="form-label">Trip Name</label>
+        <input class="form-input" type="text" id="tripName" placeholder="e.g. Iceland Adventure">
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group">
+            <label class="form-label">From</label>
+            <input class="form-input" type="date" id="tripDateFrom">
+          </div>
+          <div class="form-group">
+            <label class="form-label">To</label>
+            <input class="form-input" type="date" id="tripDateTo">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" id="textLabel">What happened?</label>
+        <textarea class="form-textarea" id="entryText" placeholder="Write about this memory..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Photos</label>
+        <div class="photo-upload-area" id="photoArea">
+          <label class="add-photo-btn" id="addPhotoBtn">
+            +
+            <input type="file" id="photoInput" accept="image/*" multiple hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Single date for entries, hidden for trips -->
+      <div class="form-row" id="entryDateRow">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-input" type="date" id="entryDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time (optional)</label>
+          <input class="form-input" type="time" id="entryTime">
+        </div>
+      </div>
+
+      <!-- Parent trip selector (for sub-entries) -->
+      <div class="form-group" id="tripSelectGroup" style="display:none">
+        <label class="form-label">Part of trip</label>
+        <select class="form-input" id="parentTripSelect">
+          <option value="">None (standalone entry)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <div class="location-row">
+          <input class="form-input" type="text" id="entryLocation" placeholder="Where were you?">
+          <button class="gps-btn" id="gpsBtn" title="Auto-detect location">&#127759;</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">How were you feeling?</label>
+        <input class="form-input" type="text" id="entryMood" placeholder="e.g. Happy, Grateful, Adventurous...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Who were you with?</label>
+        <div class="people-container" id="peopleContainer"></div>
+        <div class="location-row">
+          <input class="form-input" type="text" id="personInput" placeholder="Add a person...">
+          <button class="gps-btn" id="addPersonBtn" title="Add person">+</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="tags-container" id="tagsContainer"></div>
+        <div class="location-row">
+          <input class="form-input" type="text" id="tagInput" placeholder="Add a tag (e.g. travel, food)...">
+          <button class="gps-btn" id="addTagBtn" title="Add tag">+</button>
+        </div>
+      </div>
+
+      <div class="form-group" id="mapPinSection">
+        <label class="form-label">Pin on map (zoom in &amp; tap to place)</label>
+        <div class="map-wrapper" id="modalMapWrapper">
+          <canvas id="modalMapCanvas"></canvas>
+          <div class="map-zoom-controls">
+            <button class="zoom-btn" id="modalZoomIn" type="button" title="Zoom in">+</button>
+            <button class="zoom-btn" id="modalZoomOut" type="button" title="Zoom out">&minus;</button>
+            <button class="zoom-btn" id="modalZoomReset" type="button" title="Reset view">&#8634;</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="saveEntry">Pin This Memory &#128204;</button>
+    </div>
+  </div>
+
+  <!-- Detail Modal (for viewing a full entry) -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="detailTitle">Memory</h2>
+        <button class="modal-close" id="detailClose">&times;</button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Photo Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <img id="lightboxImg" src="" alt="Photo">
+  </div>
+
+  <script src="js/geodata.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
