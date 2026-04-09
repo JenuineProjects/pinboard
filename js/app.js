@@ -844,16 +844,26 @@
     setTimeout(() => initModalMap(), 50);
   }
 
-  function openNewSubEntryModal(tripId) {
+  async function openNewSubEntryModal(tripId) {
     editingId = null;
     isTrip = false;
     parentTripId = tripId;
     configureModalForMode();
     resetForm();
-    $('entryDate').value = new Date().toISOString().split('T')[0];
-    // Hide the trip selector since we already know the parent
+
+    // Get the trip to constrain dates
+    const trip = await PinboardDB.get(tripId);
+    if (trip) {
+      $('entryDate').min = trip.dateFrom;
+      $('entryDate').max = trip.dateTo;
+      $('entryDate').value = trip.dateFrom;
+      $('modalTitle').textContent = `Add to ${trip.tripName || 'Trip'}`;
+    } else {
+      $('entryDate').value = new Date().toISOString().split('T')[0];
+      $('modalTitle').textContent = 'Add to Trip';
+    }
+
     $('tripSelectGroup').style.display = 'none';
-    $('modalTitle').textContent = 'Add to Trip';
     $('entryModal').classList.add('active');
     setTimeout(() => initModalMap(), 50);
   }
@@ -933,6 +943,8 @@
   function resetForm() {
     $('entryText').value = '';
     $('entryDate').value = '';
+    $('entryDate').min = '';
+    $('entryDate').max = '';
     $('entryTime').value = '';
     $('entryLocation').value = '';
     $('entryMood').value = '';
